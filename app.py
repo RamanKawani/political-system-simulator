@@ -1,82 +1,42 @@
+# app.py
 import streamlit as st
-import numpy as np
-import pandas as pd
+from system import PoliticalSystem
 
-# Define functions for simulating the political system
-def create_government():
-    government = {
-        'President': 'John Doe',
-        'Ministers': ['Minister of Finance', 'Minister of Defense', 'Minister of Health']
-    }
-    return government
-
-def create_parties():
-    parties = {
-        'Party A': 'Conservative',
-        'Party B': 'Liberal',
-        'Party C': 'Socialist'
-    }
-    return parties
-
-def simulate_election(parties):
-    # Simple election simulation based on random votes
-    results = {party: np.random.randint(100, 1000) for party in parties}
-    return results
-
-# Streamlit app layout
-st.title('Political System Simulator')
-
-# Sidebar for user interaction
-st.sidebar.header('Simulation Settings')
-simulation_type = st.sidebar.selectbox('Select Simulation Type', ['Create Government', 'Political Parties', 'Election'])
-
-if simulation_type == 'Create Government':
-    st.subheader('Government Overview')
-    government = create_government()
-    st.write(f"President: {government['President']}")
-    st.write(f"Ministers: {', '.join(government['Ministers'])}")
+def app():
+    st.title("Political System Simulator")
     
-    # Allow user to add new ministers
-    new_minister = st.text_input('Add a new minister', '')
-    if new_minister:
-        government['Ministers'].append(new_minister)
-        st.write(f"Updated Ministers: {', '.join(government['Ministers'])}")
-        
-elif simulation_type == 'Political Parties':
-    st.subheader('Political Parties Overview')
-    parties = create_parties()
-    st.write(f"Political Parties and Ideologies:")
-    for party, ideology in parties.items():
-        st.write(f"{party}: {ideology}")
+    # Initialize the PoliticalSystem object
+    system = PoliticalSystem()
     
-    # Allow user to add a new party
-    new_party = st.text_input('Add a new political party', '')
-    new_ideology = st.text_input('Add party ideology', '')
-    if new_party and new_ideology:
-        parties[new_party] = new_ideology
-        st.write(f"Updated Political Parties:")
-        for party, ideology in parties.items():
-            st.write(f"{party}: {ideology}")
+    st.header("Current Government System:")
+    st.write(system.government)
+    
+    st.header("Political Parties and Seats in Parliament:")
+    st.write(system.parliament)
+    
+    st.header("Change Government Type")
+    new_government = st.selectbox(
+        "Choose a government type", 
+        options=["Democratic", "Authoritarian", "Republic", "Monarchy"]
+    )
+    if st.button("Change Government"):
+        system.change_government(new_government)
+        st.success(f"Government changed to {new_government}")
+    
+    st.header("Simulate Election Results")
+    if st.button("Simulate Vote"):
+        winner = system.simulate_vote()
+        st.success(f"The winning party is {winner}")
 
-elif simulation_type == 'Election':
-    st.subheader('Election Simulation')
-    parties = create_parties()
-    election_results = simulate_election(parties)
+    st.header("Add a New Party")
+    party_name = st.text_input("Enter Party Name")
+    party_seats = st.number_input("Enter Seats", min_value=1, max_value=500)
     
-    # Display election results
-    st.write("Election Results:")
-    for party, votes in election_results.items():
-        st.write(f"{party}: {votes} votes")
-    
-    # Show results in a bar chart
-    election_df = pd.DataFrame(list(election_results.items()), columns=["Party", "Votes"])
-    st.bar_chart(election_df.set_index("Party"))
-    
-    # Allow user to simulate another election
-    if st.button('Simulate New Election'):
-        election_results = simulate_election(parties)
-        st.write("New Election Results:")
-        for party, votes in election_results.items():
-            st.write(f"{party}: {votes} votes")
-        election_df = pd.DataFrame(list(election_results.items()), columns=["Party", "Votes"])
-        st.bar_chart(election_df.set_index("Party"))
+    if st.button("Add Party"):
+        if party_name and party_seats:
+            system.add_party(party_name, party_seats)
+            st.success(f"Added {party_name} with {party_seats} seats")
+
+# Run the app
+if __name__ == "__main__":
+    app()
